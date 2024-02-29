@@ -8,7 +8,19 @@ let users = [
 router
   .route("/user")
   .get(function (req, res) {
-    res.json(users);
+    if (users.length > 0) {
+      res.json({
+        statusbar: true,
+        data: users,
+        method: req.method,
+      });
+    } else {
+      res.json({
+        statusbar: false,
+        data: users,
+        message: "user is empty",
+      });
+    }
   })
   .post(function (req, res) {
     users.push({
@@ -16,7 +28,11 @@ router
       name: req.body.name,
       sekolah: req.body.sekolah,
     });
-    res.json(users);
+    res.json({
+      statusbar: true,
+      data: users,
+      message: "User data has been successfully saved",
+    });
   });
 
 router
@@ -32,12 +48,20 @@ router
         return user;
       }
     });
-    res.json(users);
+    res.json({
+      statusbar: true,
+      data: users,
+      message: "User data has been successfully update",
+    });
   })
   .delete(function (req, res) {
     const id = req.params.userId;
     users = users.filter((user) => user.id != id);
-    res.json(users);
+    res.json({
+      statusbar: true,
+      data: users,
+      message: "Success delete this user",
+    });
   });
 
 module.exports = router;
