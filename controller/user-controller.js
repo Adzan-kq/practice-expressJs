@@ -1,59 +1,105 @@
-let users = [
-  { id: 1, name: "Muhammad Adzan Nurkholiq", school: "Smkn 1 Cimahi" },
-];
+const config = require("../configs/database");
+const mysql = require("mysql");
+const pool = mysql.createPool(config);
+
+pool.on("error", (err) => {
+  console.error(err);
+});
 
 module.exports = {
   getListUsers: function (req, res) {
-    if (users.length > 0) {
-      res.json({
-        statusbar: true,
-        data: users,
-        method: req.method,
-      });
-    } else {
-      res.json({
-        statusbar: false,
-        data: users,
-        message: "user is empty",
-      });
-    }
+    pool.getConnection(function (err, connection) {
+      if (err) throw err;
+      connection.query(
+        `
+          SELECT * FROM user;
+          `,
+        function (error, results) {
+          if (error) throw error;
+          res.send({
+            success: true,
+            message: "Berhasil ambil data!",
+            data: results,
+            method: req.method,
+          });
+        }
+      );
+      connection.release();
+    });
   },
   createUsers: function (req, res) {
-    users.push({
-      id: parseInt(req.body.id),
+    let createUser = {
       name: req.body.name,
-      sekolah: req.body.sekolah,
-    });
-    res.json({
-      statusbar: true,
-      data: users,
-      message: "User data has been successfully saved",
+      telp: req.body.telp,
+      email: req.body.email,
+    };
+
+    pool.getConnection(function (err, connection) {
+      if (err) throw err;
+      connection.query(
+        `
+          INSERT INTO user SET ?;
+          `,
+        [createUser],
+        function (error, results) {
+          if (error) throw error;
+          res.send({
+            success: true,
+            message: "User data has been successfully saved",
+            method: req.method,
+          });
+        }
+      );
+      connection.release();
     });
   },
   updateUsers: function (req, res) {
     const id = req.params.userId;
-    users.filter((user) => {
-      if (user.id == id) {
-        user.id = parseInt(id);
-        user.name = req.body.name;
-        user.sekolah = req.body.sekolah;
+    let updateUser = {
+      name: req.body.name,
+      telp: req.body.telp,
+      email: req.body.email,
+      age: req.body.age,
+    };
 
-        return user;
-      }
-    });
-    res.json({
-      statusbar: true,
-      data: users,
-      message: "User data has been successfully update",
+    pool.getConnection(function (err, connection) {
+      if (err) throw err;
+      connection.query(
+        `
+          UPDATE user SET ? WHERE id = ?;
+          `,
+        [updateUser, id],
+        function (error, results) {
+          if (error) throw error;
+          res.send({
+            success: true,
+            message: "User data has been successfully update",
+            method: req.method,
+          });
+        }
+      );
+      connection.release();
     });
   },
   deleteUsers: function (req, res) {
     const id = req.params.userId;
-    users = users.filter((user) => user.id != id);
-    res.json({
-      statusbar: true,
-      data: users,
-      message: "Success delete this user",
+    pool.getConnection(function (err, connection) {
+      if (err) throw err;
+      connection.query(
+        `
+          DELETE FROM user WHERE id = ?;
+          `,
+        [id],
+        function (error, results) {
+          if (error) throw error;
+          res.send({
+            success: true,
+            message: "Success delete this user",
+            method: req.method,
+          });
+        }
+      );
+      connection.release();
     });
   },
 };
